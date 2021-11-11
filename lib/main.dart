@@ -7,6 +7,7 @@ import 'package:flutter_application_1/models/coinInfo_model.dart';
 import 'package:flutter_application_1/models/rawUSD_model.dart';
 import 'package:flutter_application_1/models/raw_model.dart';
 import 'package:flutter_application_1/models/welcome_model.dart';
+import 'package:flutter_application_1/views/coinInfo_view.dart';
 import 'package:http/http.dart' as http;
 
 import 'models/datum_model.dart';
@@ -51,18 +52,32 @@ class Home_View extends StatelessWidget {
                 physics: NeverScrollableScrollPhysics(),
                 itemCount: snapshot.data.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    //[coinInfoList, rawInfoList, rawUSDInfoList]
-                    title: Text(snapshot.data[0][index].name),
-                    subtitle: Text('id: ${snapshot.data[0][index].id}'),
-                    trailing: Text('${snapshot.data[2][index].price}'),
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CoinInfo_View(
+                            coinInfo: snapshot.data[0][index],
+                            raw: snapshot.data[1][index],
+                            rawUSD: snapshot.data[2][index],
+                          ),
+                        ),
+                      );
+                    },
+                    child: ListTile(
+                      //[coinInfoList, rawInfoList, rawUSDInfoList]
+                      title: Text(snapshot.data[0][index].name),
+                      subtitle: Text('id: ${snapshot.data[0][index].id}'),
+                      trailing: Text('${snapshot.data[2][index].price}'),
+                    ),
                   );
                 },
               ),
             );
           } else {
             return Center(
-              child: Text('failed to fetch data'),
+              child: CircularProgressIndicator(),
             );
           }
         },
