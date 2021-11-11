@@ -1,11 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_application_1/models/coinInfo_model.dart';
-import 'package:flutter_application_1/models/rawUSD_model.dart';
-import 'package:flutter_application_1/models/raw_model.dart';
 import 'package:flutter_application_1/models/welcome_model.dart';
 import 'package:flutter_application_1/views/coinInfo_view.dart';
 import 'package:http/http.dart' as http;
@@ -50,7 +44,7 @@ class Home_View extends StatelessWidget {
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
-                itemCount: snapshot.data.length,
+                itemCount: snapshot.data[0].length,
                 itemBuilder: (BuildContext context, int index) {
                   return GestureDetector(
                     onTap: () {
