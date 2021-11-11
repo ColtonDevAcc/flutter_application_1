@@ -2,7 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_application_1/models/coinInfo_model.dart';
+import 'package:flutter_application_1/models/rawUSD_model.dart';
+import 'package:flutter_application_1/models/raw_model.dart';
+import 'package:flutter_application_1/models/welcome_model.dart';
 import 'package:http/http.dart' as http;
+
+import 'models/datum_model.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,73 +40,51 @@ class Home_View extends StatelessWidget {
       appBar: AppBar(
         title: Text('Coins++'),
       ),
-      body: ListView.builder(
-        itemBuilder: (BuildContext context, int index) {
-          Coins newCoins =
-              Coins.fromJson('https://min-api.cryptocompare.com/data/top/totalvolfull?tsym=USD');
-          return ListTile(
-            title: Text(newCoins.name), //!title
-            subtitle: Text(newCoins.id), //!ID
-            trailing: Text(newCoins.rawPrice.toString()), //!raw PRICE
-          );
+      body: FutureBuilder(
+        future: loadCoinData(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.data != null) {
+            return Container(
+              child: ListView.builder(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: snapshot.data.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return ListTile(
+                    //[coinInfoList, rawInfoList, rawUSDInfoList]
+                    title: Text(snapshot.data[0][index].name),
+                    subtitle: Text('id: ${snapshot.data[0][index].id}'),
+                    trailing: Text('${snapshot.data[2][index].price}'),
+                  );
+                },
+              ),
+            );
+          } else {
+            return Center(
+              child: Text('failed to fetch data'),
+            );
+          }
         },
       ),
     );
   }
 }
 
-class Coins {
-  String name;
-  String id;
-  double rawPrice;
-  Coins({
-    required this.name,
-    required this.id,
-    required this.rawPrice,
+Future<List<dynamic>> loadCoinData() async {
+  var response =
+      await http.get(Uri.parse('https://min-api.cryptocompare.com/data/top/totalvolfull?tsym=USD'));
+  List<Datum> datum = Welcome.fromJson(response.body).data;
+
+  List coinInfoList = [];
+  List rawInfoList = [];
+  List rawUSDInfoList = [];
+
+  datum.forEach((element) {
+    coinInfoList.add(element.coinInfo);
+    rawInfoList.add(element.raw);
+    rawUSDInfoList.add(element.raw.usd);
   });
 
-  Coins copyWith({
-    String? name,
-    String? id,
-    double? rawPrice,
-  }) {
-    return Coins(
-      name: name ?? this.name,
-      id: id ?? this.id,
-      rawPrice: rawPrice ?? this.rawPrice,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'id': id,
-      'rawPrice': rawPrice,
-    };
-  }
-
-  factory Coins.fromMap(Map<String, dynamic> map) {
-    return Coins(
-      name: map['name'],
-      id: map['id'],
-      rawPrice: map['rawPrice'],
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory Coins.fromJson(String source) => Coins.fromMap(json.decode(source));
-
-  @override
-  String toString() => 'Coins(name: $name, id: $id, rawPrice: $rawPrice)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is Coins && other.name == name && other.id == id && other.rawPrice == rawPrice;
-  }
-
-  @override
-  int get hashCode => name.hashCode ^ id.hashCode ^ rawPrice.hashCode;
+  return [coinInfoList, rawInfoList, rawUSDInfoList];
 }
